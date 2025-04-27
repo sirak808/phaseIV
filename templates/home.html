@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+    <h1>Welcome to the Flight Management System!</h1>
+
+    <ul>
+        <li><a href="{{ url_for('views.route_summary') }}">Route Summary</a></li>
+        <li><a href="{{ url_for('views.alternative_airports') }}">Alternative Airports</a></li>
+        <li><a href="{{ url_for('views.people_on_the_ground') }}">People on the Ground</a></li>
+        <li><a href="{{ url_for('views.people_in_the_air') }}">People in the Air</a></li>
+        <li><a href="{{ url_for('views.flights_on_the_ground') }}">Flights on the Ground</a></li>
+        <li><a href="{{ url_for('views.flights_in_the_air') }}">Flights in the Air</a></li>
+    </ul>
+</body>
+</html>

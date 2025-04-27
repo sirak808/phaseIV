@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Route Summary</title>
+</head>
+<body>
+    <h1>Route Summary</h1>
+
+    {% if routes %}
+        <table border="1">
+            <tr>
+                <th>Route</th>
+                <th># of Legs</th>
+                <th>Leg Sequence</th>
+                <th>Route Length</th>
+                <th># of Flights</th>
+                <th>Flight List</th>
+                <th>Airport Sequence</th>
+            </tr>
+            {% for route in routes %}
+            <tr>
+                {% for value in route %}
+                <td>{{ value if value is not none else '' }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+
+        </table>
+    {% else %}
+        <p>No routes found.</p>
+    {% endif %}
+
+    <br>
+    
+    <a href="{{ url_for('home') }}">Home</a>
+</body>
+</html>
