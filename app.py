@@ -2,15 +2,15 @@ from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from extensions import db
-
-
+import os
+from dotenv import load_dotenv
 
 def create_app():
 
     app = Flask(__name__)
 
     # Configure the SQLAlchemy part
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:176653@localhost/flight_tracking'
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
