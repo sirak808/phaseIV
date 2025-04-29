@@ -1,0 +1,115 @@
+{# filename: templates/add_person.html - NEW FILE #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Person</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; font-size: 16px; line-height: 1.6;}
+        .container { max-width: 600px; margin: auto; background: #f4f4f4; padding: 20px; border-radius: 5px;}
+        h1, h2 { text-align: center; margin-bottom: 20px;}
+        h2 { margin-top: 30px; border-bottom: 1px solid #ccc; padding-bottom: 5px;}
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; 
+        }
+        .role-section { border: 1px dashed #aaa; padding: 15px; margin-top: 10px; border-radius: 4px; background-color: #fdfdfd;}
+        .role-section h3 { margin-top: 0; text-align: center; color: #555;}
+        button[type="submit"], .button-link {
+            display: inline-block; 
+            padding: 10px 20px;
+            margin-top: 10px;
+            margin-right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none; 
+            font-size: 1em;
+        }
+        button[type="submit"]:hover, .button-link:hover { background-color: #0056b3; }
+        .button-link.cancel { background-color: #6c757d; }
+        .button-link.cancel:hover { background-color: #5a6268; }
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        .alert-warning { color: #856404; background-color: #fff3cd; border-color: #ffeeba; }
+        small { color: #666; display: block; margin-top: 5px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Add New Person (Pilot or Passenger)</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('procedures.add_person') }}">
+
+            <h2>Common Details</h2>
+            <div class="form-group">
+                <label for="personID">Person ID (Unique): *</label>
+                <input type="text" id="personID" name="personID" required maxlength="50">
+            </div>
+            <div class="form-group">
+                <label for="first_name">First Name: *</label>
+                <input type="text" id="first_name" name="first_name" required maxlength="100">
+            </div>
+             <div class="form-group">
+                <label for="last_name">Last Name (Optional):</label>
+                <input type="text" id="last_name" name="last_name" maxlength="100">
+            </div>
+            <div class="form-group">
+                <label for="locationID">Initial Location ID: *</label>
+                <input type="text" id="locationID" name="locationID" required maxlength="50">
+                 <small>Must be an existing location (e.g., an airport's location ID).</small>
+            </div>
+
+            <h2>Role Details (Fill EITHER Pilot OR Passenger section)</h2>
+
+            <div class="role-section">
+                <h3>Pilot Role</h3>
+                 <div class="form-group">
+                    <label for="taxID">Tax ID (Pilot Only):</label>
+                    <input type="text" id="taxID" name="taxID" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="experience">Experience Level (Pilot Only):</label>
+                    <input type="number" id="experience" name="experience" min="0">
+                </div>
+                <small>If adding a Pilot, fill Tax ID and Experience above, leave Miles and Funds below empty.</small>
+            </div>
+
+
+            <div class="role-section">
+                <h3>Passenger Role</h3>
+                <div class="form-group">
+                    <label for="miles">Frequent Flyer Miles (Passenger Only):</label>
+                    <input type="number" id="miles" name="miles" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="funds">Available Funds (Passenger Only):</label>
+                    <input type="number" id="funds" name="funds" min="0">
+                </div>
+                 <small>If adding a Passenger, fill Miles and Funds above, leave Tax ID and Experience above empty.</small>
+            </div>
+
+
+            <button type="submit">Add Person</button>
+            <a href="{{ url_for('home') }}" class="button-link cancel">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

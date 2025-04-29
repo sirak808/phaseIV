@@ -1,0 +1,40 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flights on the Ground</title>
+</head>
+<body>
+    <h1>Flights on the Ground</h1>
+
+    {% if flights %}
+        <table border="1">
+            <tr>
+                <th>Departure</th>
+                <th># of Flights</th>
+                <th>Flight List</th>
+                <th>Earliest Arrival</th>
+                <th>Latest Arrival</th>
+                <th>Airplane List</th>
+                
+            </tr>
+            {% for flight in flights %}
+            <tr>
+                {% for value in flight %}
+                <td>{{ value if value is not none else '' }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+
+        </table>
+    {% else %}
+        <p>No flights found.</p>
+    {% endif %}
+
+    <br>
+    
+    <a href="{{ url_for('home') }}">Home</a>
+</body>
+</html>

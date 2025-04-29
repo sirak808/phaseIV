@@ -1,0 +1,96 @@
+{# filename: templates/offer_flight.html - NEW FILE #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offer Flight</title>
+    <style>
+        /* Basic styling - adapt or use a framework */
+        body { font-family: sans-serif; padding: 20px; font-size: 16px; line-height: 1.6;}
+        .container { max-width: 600px; margin: auto; background: #f4f4f4; padding: 20px; border-radius: 5px;}
+        h1 { text-align: center; margin-bottom: 20px;}
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"], input[type="time"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button[type="submit"], .button-link {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+            margin-right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1em;
+        }
+        button[type="submit"]:hover, .button-link:hover { background-color: #0056b3; }
+        .button-link.cancel { background-color: #6c757d; }
+        .button-link.cancel:hover { background-color: #5a6268; }
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        small { color: #666; display: block; margin-top: 5px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Offer New Flight</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('procedures.offer_flight') }}">
+             <div class="form-group">
+                <label for="flightID">Flight ID (Unique): *</label>
+                <input type="text" id="flightID" name="flightID" required maxlength="50">
+            </div>
+             <div class="form-group">
+                <label for="routeID">Route ID: *</label>
+                <input type="text" id="routeID" name="routeID" required maxlength="50">
+                <small>Must be an existing Route ID.</small>
+            </div>
+             <div class="form-group">
+                <label for="support_airline">Support Airline ID (Optional):</label>
+                <input type="text" id="support_airline" name="support_airline" maxlength="50">
+                 <small>Leave blank if no plane assigned yet. If provided, must exist.</small>
+            </div>
+            <div class="form-group">
+                <label for="support_tail">Support Tail Number (Optional):</label>
+                <input type="text" id="support_tail" name="support_tail" maxlength="50">
+                <small>Leave blank if no plane assigned yet. If provided, must exist and match airline.</small>
+            </div>
+             <div class="form-group">
+                <label for="progress">Initial Progress (Leg Sequence): *</label>
+                <input type="number" id="progress" name="progress" required min="0">
+                <small>Usually 0 for a new flight starting at the beginning.</small>
+            </div>
+             <div class="form-group">
+                <label for="next_time">Next Event Time (HH:MM or HH:MM:SS): *</label>
+                <input type="time" id="next_time" name="next_time" required step="1">
+                 <small>The time the first event (takeoff) is scheduled.</small>
+            </div>
+             <div class="form-group">
+                <label for="cost">Flight Cost: *</label>
+                <input type="number" id="cost" name="cost" required min="0">
+            </div>
+
+            <button type="submit">Offer Flight</button>
+            <a href="{{ url_for('home') }}" class="button-link cancel">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

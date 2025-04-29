@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Alternative Airports</title>
+</head>
+<body>
+    <h1>Alternative Airports</h1>
+
+    {% if airports %}
+        <table border="1">
+            <tr>
+                <th>City</th>
+                <th>State</th>
+                <th>Country</th>
+                <th># of Airports</th>
+                <th>Airport Codes</th>
+                <th>Airport Names</th>
+            </tr>
+            {% for airport in airports %}
+            <tr>
+                {% for value in airport %}
+                <td>{{ value if value is not none else '' }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+
+        </table>
+    {% else %}
+        <p>No airports found.</p>
+    {% endif %}
+
+    <br>
+    
+    <a href="{{ url_for('home') }}">Home</a>
+</body>
+</html>

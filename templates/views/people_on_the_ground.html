@@ -1,0 +1,43 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>People on the Ground</title>
+</head>
+<body>
+    <h1>People on the Ground</h1>
+
+    {% if people %}
+        <table border="1">
+            <tr>
+                <th>Departure</th>
+                <th>Airport ID</th>
+                <th>Airport Name</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Country</th>
+                <th># of Pilots</th>
+                <th># of Passengers</th>
+                <th>Total # of People</th>
+                <th>Person List</th>
+            </tr>
+            {% for person in people %}
+            <tr>
+                {% for value in person %}
+                <td>{{ value if value is not none else '' }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+
+        </table>
+    {% else %}
+        <p>No people found.</p>
+    {% endif %}
+
+    <br>
+    
+    <a href="{{ url_for('home') }}">Home</a>
+</body>
+</html>
