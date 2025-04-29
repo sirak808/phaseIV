@@ -1,13 +1,25 @@
-{# filename: templates/home.html - UPDATED #}
+{# filename: templates/home.html - CORRECTED #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
     {# Add any CSS links you use, e.g., Bootstrap #}
+    {# CSS from <style> block removed as requested #}
 </head>
 <body>
     <h1>Welcome to the Flight Management System!</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 15px; border: 1px solid transparent; border-radius: 4px; background-color: {% if category == 'success'%}#d4edda{% elif category=='danger'%}#f8d7da{% else %}#fff3cd{% endif %}; color: {% if category == 'success'%}#155724{% elif category=='danger'%}#721c24{% else %}#856404{% endif %}; border-color: {% if category == 'success'%}#c3e6cb{% elif category=='danger'%}#f5c6cb{% else %}#ffeeba{% endif %};">
+             {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
 
     <h2>Views</h2>
     <ul>
@@ -25,14 +37,27 @@
         <li><a href="{{ url_for('procedures.add_airport') }}">Add Airport</a></li>
         <li><a href="{{ url_for('procedures.add_person') }}">Add Person</a></li>
         <li><a href="{{ url_for('procedures.grant_revoke_license') }}">Grant/Revoke Pilot License</a></li>
-        {# === ADD THESE LINES === #}
         <li><a href="{{ url_for('procedures.offer_flight') }}">Offer Flight</a></li>
         <li><a href="{{ url_for('procedures.flight_landing') }}">Process Flight Landing</a></li>
         <li><a href="{{ url_for('procedures.flight_takeoff') }}">Process Flight Takeoff</a></li>
-        {# ===================== #}
-   
+        <li><a href="{{ url_for('procedures.passengers_board') }}">Process Passenger Boarding</a></li>
+        <li><a href="{{ url_for('procedures.passengers_disembark') }}">Process Passenger Disembarking</a></li>
+
+        {# === ADD THESE LINES === #}
+        <li><a href="{{ url_for('procedures.assign_pilot') }}">Assign Pilot to Flight</a></li>
+        <li><a href="{{ url_for('procedures.recycle_crew') }}">Recycle Flight Crew</a></li>
+        <li><a href="{{ url_for('procedures.retire_flight') }}">Retire Flight</a></li>
+        <li>
+            Run Simulation Cycle
+            <form method="POST" action="{{ url_for('procedures.simulation_cycle') }}" class="action-form" style="display: inline-block; margin-left: 10px;">
+                 <button type="submit" class="action-button" style="padding: 5px 10px; background-color: #fd7e14; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">Run Cycle</button>
+            </form>
+        </li>
+         {# ===================== #}
+        {# Add links for passengers_board/disembark if implemented #}
     </ul>
 
+    {# Include Tests link if desired from your tests.py #}
     <h2>Tests</h2>
      <ul>
          <li><a href="{{ url_for('tests.test_db') }}">Test DB Connection</a></li>

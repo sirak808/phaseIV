@@ -1,0 +1,61 @@
+{# filename: templates/assign_pilot.html - NEW FILE #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Pilot to Flight</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; font-size: 16px; line-height: 1.6;}
+        .container { max-width: 500px; margin: auto; background: #f4f4f4; padding: 20px; border-radius: 5px;}
+        h1 { text-align: center; margin-bottom: 20px;}
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"] {
+            width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+        }
+        button[type="submit"], .button-link {
+            display: inline-block; padding: 10px 20px; margin-top: 10px; margin-right: 10px;
+            background-color: #007bff; color: white; border: none; border-radius: 4px;
+            cursor: pointer; text-decoration: none; font-size: 1em; font-weight: bold;
+        }
+        button[type="submit"]:hover, .button-link:hover { background-color: #0056b3; }
+        .button-link.cancel { background-color: #6c757d; }
+        .button-link.cancel:hover { background-color: #5a6268; }
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        small { color: #666; display: block; margin-top: 5px;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Assign Pilot to Flight</h1>
+        <small>Assigns an existing pilot to an existing flight that is currently 'on_ground'. Ensures pilot has license, is at the correct location, and isn't already commanding a flight.</small>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('procedures.assign_pilot') }}">
+             <div class="form-group">
+                <label for="flightID">Flight ID: *</label>
+                <input type="text" id="flightID" name="flightID" required maxlength="50">
+                 <small>The flight must exist and be 'on_ground'.</small>
+            </div>
+             <div class="form-group">
+                <label for="personID">Pilot Person ID: *</label>
+                <input type="text" id="personID" name="personID" required maxlength="50">
+                <small>Must be an existing pilot, not currently assigned, with the correct license, and at the flight's current location.</small>
+            </div>
+
+            <button type="submit">Assign Pilot</button>
+            <a href="{{ url_for('home') }}" class="button-link cancel">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

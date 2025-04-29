@@ -1,95 +1,59 @@
+# filename: routes/procedures.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from sqlalchemy import text, exc
+from sqlalchemy import text, exc # Import exc for specific exceptions if needed
 from extensions import db
 import traceback
-import datetime
+import datetime # Needed for time conversion in offer_flight
 
 procedures_bp = Blueprint('procedures', __name__, template_folder='../templates/procedures')
 
 @procedures_bp.route('/add_airplane', methods=['GET', 'POST'])
 def add_airplane():
     if request.method == 'POST':
-        airline_id = request.form.get('airlineID')
-        tail_num = request.form.get('tail_num')
-        seat_capacity_str = request.form.get('seat_capacity')
-        speed_str = request.form.get('speed')
-        location_id = request.form.get('locationID')
-        plane_type = request.form.get('plane_type')
-        maintenanced_checkbox = request.form.get('maintenanced')
-        model = request.form.get('model')
-        neo_checkbox = request.form.get('neo')
-        params = {}
-        validation_error = False
-        if not all([airline_id, tail_num, seat_capacity_str, speed_str, location_id]):
-            flash('Missing required fields.', 'danger')
-            validation_error = True
+        airline_id = request.form.get('airlineID'); tail_num = request.form.get('tail_num')
+        seat_capacity_str = request.form.get('seat_capacity'); speed_str = request.form.get('speed')
+        location_id = request.form.get('locationID'); plane_type = request.form.get('plane_type')
+        maintenanced_checkbox = request.form.get('maintenanced'); model = request.form.get('model'); neo_checkbox = request.form.get('neo')
+        params = {}; validation_error = False
+        if not all([airline_id, tail_num, seat_capacity_str, speed_str, location_id]): flash('Missing required fields.', 'danger'); validation_error = True
         try:
-            if seat_capacity_str:
-                 params['seat_capacity'] = int(seat_capacity_str)
-                 if params['seat_capacity'] <= 0: raise ValueError("Seat capacity must be positive.")
+            if seat_capacity_str: params['seat_capacity'] = int(seat_capacity_str); 
             else: raise ValueError("Seat capacity is required.")
-            if speed_str:
-                 params['speed'] = int(speed_str)
-                 if params['speed'] <= 0: raise ValueError("Speed must be positive.")
+            if speed_str: params['speed'] = int(speed_str);
             else: raise ValueError("Speed is required.")
-        except ValueError as ve:
-            flash(f'Seat Capacity and Speed must be valid positive integers. Error: {ve}', 'danger')
-            validation_error = True
-        params['airlineID'] = airline_id
-        params['tail_num'] = tail_num
-        params['locationID'] = location_id
+        except ValueError as ve: flash(f'Seat Capacity and Speed must be valid positive integers. Error: {ve}', 'danger'); validation_error = True
+        params['airlineID'] = airline_id; params['tail_num'] = tail_num; params['locationID'] = location_id
         params['plane_type'] = plane_type if plane_type else None
         params['maintenanced'] = True if maintenanced_checkbox == 'on' and params['plane_type'] == 'Boeing' else None
         params['model'] = model if model and params['plane_type'] == 'Boeing' else None
         params['neo'] = True if neo_checkbox == 'on' and params['plane_type'] == 'Airbus' else None
         if not validation_error:
             try:
-                sql = text("""
-                    CALL add_airplane(:airlineID, :tail_num, :seat_capacity, :speed, :locationID,:plane_type, :maintenanced, :model, :neo)
-                """)
+                sql = text("CALL add_airplane(:airlineID, :tail_num, :seat_capacity, :speed, :locationID,:plane_type, :maintenanced, :model, :neo)")
                 db.session.execute(sql, params)
                 loc_check_sql = text("SELECT 1 FROM location WHERE locationID = :loc_id LIMIT 1")
                 plane_check_sql = text("SELECT 1 FROM airplane WHERE airlineID = :a_id AND tail_num = :t_num LIMIT 1")
                 location_added = db.session.execute(loc_check_sql, {"loc_id": location_id}).fetchone()
                 airplane_added = db.session.execute(plane_check_sql, {"a_id": airline_id, "t_num": tail_num}).fetchone()
-                if location_added is not None and airplane_added is not None:
-                    db.session.commit()
-                    flash('Airplane added successfully!', 'success')
-                else:
-                    db.session.rollback()
-                    flash('Operation failed: Airplane not added. Input may violate constraints or duplicate exists.', 'danger')
-            except exc.SQLAlchemyError as e:
-                db.session.rollback(); print(f"DB Error add_airplane: {e}"); print(traceback.format_exc()); flash(f'DB error: {e}', 'danger')
-            except Exception as e:
-                 db.session.rollback(); print(f"Unexpected Error add_airplane: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
+                if location_added is not None and airplane_added is not None: db.session.commit(); flash('Airplane added successfully!', 'success')
+                else: db.session.rollback(); flash('Operation failed: Airplane not added. Input may violate constraints or duplicate exists.', 'danger')
+            except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error add_airplane: {e}"); print(traceback.format_exc()); flash(f'DB error: {e}', 'danger')
+            except Exception as e: db.session.rollback(); print(f"Unexpected Error add_airplane: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
         return redirect(url_for('procedures.add_airplane'))
     return render_template('add_airplane.html')
-
 
 @procedures_bp.route('/add_airport', methods=['GET', 'POST'])
 def add_airport():
     if request.method == 'POST':
-        airport_id = request.form.get('airportID')
-        airport_name = request.form.get('airport_name')
-        city = request.form.get('city')
-        state = request.form.get('state')
-        country = request.form.get('country')
-        location_id = request.form.get('locationID')
-        params = {}
-        validation_error = False
-        if not all([airport_id, city, state, country, location_id]):
-            flash('Missing required fields (Airport ID, City, State, Country, Location ID).', 'danger'); validation_error = True
-        elif len(airport_id) != 3:
-             flash('Airport ID must be exactly 3 characters.', 'danger'); validation_error = True
-        elif country and len(country) != 3:
-             flash('Country Code must be exactly 3 characters.', 'danger'); validation_error = True
+        airport_id = request.form.get('airportID'); airport_name = request.form.get('airport_name')
+        city = request.form.get('city'); state = request.form.get('state'); country = request.form.get('country'); location_id = request.form.get('locationID')
+        params = {}; validation_error = False
+        if not all([airport_id, city, state, country, location_id]): flash('Missing required fields (Airport ID, City, State, Country, Location ID).', 'danger'); validation_error = True
+        elif len(airport_id) != 3: flash('Airport ID must be exactly 3 characters.', 'danger'); validation_error = True
+        elif country and len(country) != 3: flash('Country Code must be exactly 3 characters.', 'danger'); validation_error = True
         if not validation_error:
-            params['ip_airportID'] = airport_id
-            params['ip_airport_name'] = airport_name if airport_name else None
-            params['ip_city'] = city
-            params['ip_state'] = state
-            params['ip_country'] = country
-            params['ip_locationID'] = location_id
+            params['ip_airportID'] = airport_id; params['ip_airport_name'] = airport_name if airport_name else None
+            params['ip_city'] = city; params['ip_state'] = state; params['ip_country'] = country; params['ip_locationID'] = location_id
             try:
                 sql = text("CALL add_airport(:ip_airportID, :ip_airport_name, :ip_city, :ip_state, :ip_country, :ip_locationID)")
                 db.session.execute(sql, params)
@@ -97,14 +61,10 @@ def add_airport():
                 airport_check_sql = text("SELECT 1 FROM airport WHERE airportID = :ap_id LIMIT 1")
                 location_added = db.session.execute(loc_check_sql, {"loc_id": location_id}).fetchone()
                 airport_added = db.session.execute(airport_check_sql, {"ap_id": airport_id}).fetchone()
-                if location_added is not None and airport_added is not None:
-                    db.session.commit(); flash(f'Airport {airport_id} added successfully!', 'success')
-                else:
-                    db.session.rollback(); flash(f'Operation failed: Airport {airport_id} not added. Input may violate constraints or duplicate exists.', 'danger')
-            except exc.SQLAlchemyError as e:
-                db.session.rollback(); print(f"DB Error add_airport: {e}"); print(traceback.format_exc()); flash(f'DB error: {e}', 'danger')
-            except Exception as e:
-                 db.session.rollback(); print(f"Unexpected Error add_airport: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
+                if location_added is not None and airport_added is not None: db.session.commit(); flash(f'Airport {airport_id} added successfully!', 'success')
+                else: db.session.rollback(); flash(f'Operation failed: Airport {airport_id} not added. Input may violate constraints or duplicate exists.', 'danger')
+            except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error add_airport: {e}"); print(traceback.format_exc()); flash(f'DB error: {e}', 'danger')
+            except Exception as e: db.session.rollback(); print(f"Unexpected Error add_airport: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
         return redirect(url_for('procedures.add_airport'))
     return render_template('add_airport.html')
 
@@ -112,14 +72,9 @@ def add_airport():
 @procedures_bp.route('/add_person', methods=['GET', 'POST'])
 def add_person():
     if request.method == 'POST':
-        person_id = request.form.get('personID')
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        location_id = request.form.get('locationID')
-        tax_id = request.form.get('taxID')
-        experience_str = request.form.get('experience')
-        miles_str = request.form.get('miles')
-        funds_str = request.form.get('funds')
+        person_id = request.form.get('personID'); first_name = request.form.get('first_name'); last_name = request.form.get('last_name')
+        location_id = request.form.get('locationID'); tax_id = request.form.get('taxID'); experience_str = request.form.get('experience')
+        miles_str = request.form.get('miles'); funds_str = request.form.get('funds')
         params = {}; person_type = None; validation_error = False
         if not all([person_id, first_name, location_id]): flash('Missing required fields (Person ID, First Name, Location ID).', 'danger'); validation_error = True
         is_pilot_attempt = bool(tax_id or experience_str); is_passenger_attempt = bool(miles_str or funds_str)
@@ -149,80 +104,43 @@ def add_person():
                 role_added = None
                 if person_type == 'pilot': role_check_sql = text("SELECT 1 FROM pilot WHERE personID = :p_id LIMIT 1"); role_added = db.session.execute(role_check_sql, {"p_id": person_id}).fetchone()
                 elif person_type == 'passenger': role_check_sql = text("SELECT 1 FROM passenger WHERE personID = :p_id LIMIT 1"); role_added = db.session.execute(role_check_sql, {"p_id": person_id}).fetchone()
-                if person_added is not None and role_added is not None:
-                    db.session.commit(); flash(f'{person_type.capitalize()} {first_name} ({person_id}) added successfully!', 'success')
-                else:
-                    db.session.rollback(); flash(f'Operation failed: Person {person_id} not added. Input may violate constraints, location may not exist, or duplicate ID.', 'danger')
+                if person_added is not None and role_added is not None: db.session.commit(); flash(f'{person_type.capitalize()} {first_name} ({person_id}) added successfully!', 'success')
+                else: db.session.rollback(); flash(f'Operation failed: Person {person_id} not added. Input may violate constraints, location may not exist, or duplicate ID.', 'danger')
             except exc.IntegrityError as ie: db.session.rollback(); print(f"DB Integrity Error add_person: {ie}"); print(traceback.format_exc()); flash(f'DB integrity error: {ie}', 'danger')
             except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error add_person: {e}"); print(traceback.format_exc()); flash(f'DB error: {e}', 'danger')
             except Exception as e: db.session.rollback(); print(f"Unexpected Error add_person: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
         return redirect(url_for('procedures.add_person'))
     return render_template('add_person.html')
 
-
 @procedures_bp.route('/grant_revoke_license', methods=['GET', 'POST'])
 def grant_revoke_license():
     if request.method == 'POST':
-        person_id = request.form.get('personID')
-        license_name = request.form.get('license')
-        params = {}
-        validation_error = False
-
-        if not all([person_id, license_name]):
-            flash('Missing required fields (Person ID, License).', 'danger')
-            validation_error = True
-
+        person_id = request.form.get('personID'); license_name = request.form.get('license')
+        params = {}; validation_error = False
+        if not all([person_id, license_name]): flash('Missing required fields (Person ID, License).', 'danger'); validation_error = True
         if not validation_error:
-            params['ip_personID'] = person_id
-            params['ip_license'] = license_name
-
+            params['ip_personID'] = person_id; params['ip_license'] = license_name
             pilot_check_sql = text("SELECT 1 FROM pilot WHERE personID = :p_id LIMIT 1")
             license_check_sql = text("SELECT 1 FROM pilot_licenses WHERE personID = :p_id AND license = :lic LIMIT 1")
-
             try:
                 is_pilot = db.session.execute(pilot_check_sql, {"p_id": person_id}).fetchone()
                 if is_pilot is None:
                     flash(f'Operation failed: Person ID {person_id} is not a valid pilot.', 'danger')
                     return redirect(url_for('procedures.grant_revoke_license'))
-
                 lic_result_before = db.session.execute(license_check_sql, {"p_id": person_id, "lic": license_name}).fetchone()
                 had_license_before = (lic_result_before is not None)
-
                 sql = text("CALL grant_or_revoke_pilot_license(:ip_personID, :ip_license)")
                 db.session.execute(sql, params)
-
                 lic_result_after = db.session.execute(license_check_sql, {"p_id": person_id, "lic": license_name}).fetchone()
                 has_license_now = (lic_result_after is not None)
-
                 action_message = ""
-                if not had_license_before and has_license_now:
-                    action_message = f'License "{license_name}" GRANTED for pilot {person_id}.'
-                    flash(action_message, 'success')
-                    db.session.commit() 
-                elif had_license_before and not has_license_now:
-                    action_message = f'License "{license_name}" REVOKED for pilot {person_id}.'
-                    flash(action_message, 'success')
-                    db.session.commit() 
-                else:
-                    action_message = f'License "{license_name}" status UNCHANGED for pilot {person_id}. Check inputs or DB state.'
-                    flash(action_message, 'warning')
-                    db.session.rollback() 
-
-            except exc.SQLAlchemyError as e: 
-                db.session.rollback()
-                print(f"Database Error during CALL grant_or_revoke_pilot_license or checks: {e}")
-                print(traceback.format_exc())
-                flash(f'Database error occurred: {e}', 'danger')
-            except Exception as e:
-                 db.session.rollback()
-                 print(f"Unexpected Error: {e}")
-                 print(traceback.format_exc())
-                 flash(f'An unexpected error occurred: {e}', 'danger')
-
+                if not had_license_before and has_license_now: action_message = f'License "{license_name}" GRANTED for pilot {person_id}.'; flash(action_message, 'success'); db.session.commit()
+                elif had_license_before and not has_license_now: action_message = f'License "{license_name}" REVOKED for pilot {person_id}.'; flash(action_message, 'success'); db.session.commit()
+                else: action_message = f'License "{license_name}" status UNCHANGED for pilot {person_id}. Check inputs or DB state.'; flash(action_message, 'warning'); db.session.rollback()
+            except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error grant_revoke_license: {e}"); print(traceback.format_exc()); flash(f'DB error: {e}', 'danger')
+            except Exception as e: db.session.rollback(); print(f"Unexpected Error grant_revoke_license: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
         return redirect(url_for('procedures.grant_revoke_license'))
-
     return render_template('grant_revoke_license.html')
-
 
 @procedures_bp.route('/offer_flight', methods=['GET', 'POST'])
 def offer_flight():
@@ -233,23 +151,18 @@ def offer_flight():
         params = {}; validation_error = False
         if not all([flight_id, route_id, progress_str, next_time_str, cost_str]): flash('Missing required fields (Flight ID, Route ID, Progress, Next Time, Cost).', 'danger'); validation_error = True
         try:
-            if progress_str: params['ip_progress'] = int(progress_str); 
+            if progress_str: params['ip_progress'] = int(progress_str) 
             else: raise ValueError("Progress is required.")
-            if cost_str: params['ip_cost'] = int(cost_str); 
+            if cost_str: params['ip_cost'] = int(cost_str) 
             else: raise ValueError("Cost is required.")
             if next_time_str:
-                try:
-                    parts = next_time_str.split(':')
-                    params['ip_next_time'] = datetime.datetime.strptime(next_time_str, '%H:%M:%S').time()
-                except ValueError:
-                    raise ValueError("Next Time must be in HH:MM:SS format.")
-            else:
-                raise ValueError("Next Time is required.")
+                try: params['ip_next_time'] = datetime.datetime.strptime(next_time_str, '%H:%M:%S').time()
+                except ValueError: raise ValueError("Next Time must be in HH:MM:SS format.")
+            else: raise ValueError("Next Time is required.")
         except ValueError as ve: flash(f'Invalid numeric or time input. Error: {ve}', 'danger'); validation_error = True
         if not validation_error:
             params['ip_flightID'] = flight_id; params['ip_routeID'] = route_id
-            params['ip_support_airline'] = support_airline if support_airline else None
-            params['ip_support_tail'] = support_tail if support_tail else None
+            params['ip_support_airline'] = support_airline if support_airline else None; params['ip_support_tail'] = support_tail if support_tail else None
             try:
                 sql = text("CALL offer_flight(:ip_flightID, :ip_routeID, :ip_support_airline, :ip_support_tail, :ip_progress, :ip_next_time, :ip_cost)")
                 db.session.execute(sql, params)
@@ -260,7 +173,6 @@ def offer_flight():
             except Exception as e: db.session.rollback(); print(f"Unexpected Error offer_flight: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
         return redirect(url_for('procedures.offer_flight'))
     return render_template('offer_flight.html')
-
 
 @procedures_bp.route('/flight_landing', methods=['GET', 'POST'])
 def flight_landing():
@@ -281,7 +193,6 @@ def flight_landing():
         return redirect(url_for('procedures.flight_landing'))
     return render_template('flight_landing.html')
 
-
 @procedures_bp.route('/flight_takeoff', methods=['GET', 'POST'])
 def flight_takeoff():
     if request.method == 'POST':
@@ -300,4 +211,200 @@ def flight_takeoff():
             except Exception as e: db.session.rollback(); print(f"Unexpected Error flight_takeoff: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
         return redirect(url_for('procedures.flight_takeoff'))
     return render_template('flight_takeoff.html')
+
+@procedures_bp.route('/passengers_board', methods=['GET', 'POST'])
+def passengers_board():
+    if request.method == 'POST':
+        flight_id = request.form.get('flightID'); params = {}; validation_error = False
+        if not flight_id: flash('Missing required field (Flight ID).', 'danger'); validation_error = True
+        if not validation_error:
+            params['ip_flightID'] = flight_id
+            try:
+                sql = text("CALL passengers_board(:ip_flightID)"); db.session.execute(sql, params)
+                status_check_sql = text("SELECT airplane_status, progress, next_time FROM flight WHERE flightID = :f_id"); post_result = db.session.execute(status_check_sql, {"f_id": flight_id}).fetchone()
+                if post_result is None: db.session.rollback(); flash(f'Operation failed: Flight {flight_id} not found.', 'danger')
+                elif post_result[0] == 'in_flight': db.session.commit(); flash(f'Flight {flight_id} still in flight, cannot board at this time.', 'failure')
+                #elif post_result[0] == 'on_ground': db.session.commit(); flash(f'Flight {flight_id} takeoff processed, but flight remains "on_ground". Check pilot count or route status.', 'warning')
+                #lse: db.session.rollback(); flash(f'Operation failed for flight {flight_id}: Unexpected status "{post_result[0]}" after takeoff attempt.', 'danger')
+            except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error passengers_board: {e}"); print(traceback.format_exc()); flash(f'DB error for {flight_id}: {e}', 'danger')
+            except Exception as e: db.session.rollback(); print(f"Unexpected Error passengers_board: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
+        return redirect(url_for('procedures.passengers_board'))
+    return render_template('passengers_board.html')
+
+@procedures_bp.route('/passengers_disembark', methods=['GET', 'POST'])
+def passengers_disembark():
+    if request.method == 'POST':
+        flight_id = request.form.get('flightID'); params = {}; validation_error = False
+        if not flight_id: flash('Missing required field (Flight ID).', 'danger'); validation_error = True
+        if not validation_error:
+            params['ip_flightID'] = flight_id
+            try:
+                sql = text("CALL passengers_disembark(:ip_flightID)"); db.session.execute(sql, params)
+                status_check_sql = text("SELECT airplane_status, progress, next_time FROM flight WHERE flightID = :f_id"); post_result = db.session.execute(status_check_sql, {"f_id": flight_id}).fetchone()
+                if post_result is None: db.session.rollback(); flash(f'Operation failed: Flight {flight_id} not found.', 'danger')
+                elif post_result[0] == 'in_flight': db.session.commit(); flash(f'Flight {flight_id} still in flight, cannot disembark at this time.', 'failure')
+                #elif post_result[0] == 'on_ground': db.session.commit(); flash(f'Flight {flight_id} takeoff processed, but flight remains "on_ground". Check pilot count or route status.', 'warning')
+                #lse: db.session.rollback(); flash(f'Operation failed for flight {flight_id}: Unexpected status "{post_result[0]}" after takeoff attempt.', 'danger')
+            except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error passengers_disembark: {e}"); print(traceback.format_exc()); flash(f'DB error for {flight_id}: {e}', 'danger')
+            except Exception as e: db.session.rollback(); print(f"Unexpected Error passengers_disembark: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
+        return redirect(url_for('procedures.passengers_disembark'))
+    return render_template('passengers_disembark.html')
+
+
+@procedures_bp.route('/assign_pilot', methods=['GET', 'POST'])
+def assign_pilot():
+    if request.method == 'POST':
+        flight_id = request.form.get('flightID')
+        person_id = request.form.get('personID') 
+        params = {}
+        validation_error = False
+
+        if not all([flight_id, person_id]):
+            flash('Missing required fields (Flight ID, Person ID).', 'danger')
+            validation_error = True
+
+        if not validation_error:
+            params['ip_flightID'] = flight_id
+            params['ip_personID'] = person_id
+
+            assignment_check_sql = text("SELECT commanding_flight FROM pilot WHERE personID = :p_id")
+
+            try:
+                # Optional: Pre-check if person is a pilot (improves UX for invalid pilot ID)
+                pilot_check_sql = text("SELECT 1 FROM pilot WHERE personID = :p_id LIMIT 1")
+                is_pilot = db.session.execute(pilot_check_sql, {"p_id": person_id}).fetchone()
+                if is_pilot is None:
+                    flash(f'Operation failed: Person ID {person_id} is not a valid pilot.', 'danger')
+                    return redirect(url_for('procedures.assign_pilot'))
+                # Optional: Pre-check flight status (improves UX)
+                flight_check_sql = text("SELECT 1 FROM flight WHERE flightID = :f_id AND airplane_status = 'on_ground' LIMIT 1")
+                is_valid_flight = db.session.execute(flight_check_sql, {"f_id": flight_id}).fetchone()
+                if is_valid_flight is None:
+                     flash(f'Operation failed: Flight ID {flight_id} not found or is not "on_ground".', 'danger')
+                     return redirect(url_for('procedures.assign_pilot'))
+     
+                sql = text("CALL assign_pilot(:ip_flightID, :ip_personID)")
+                db.session.execute(sql, params)
+
+        
+                assignment_result = db.session.execute(assignment_check_sql, {"p_id": person_id}).fetchone()
+
+   
+                if assignment_result is not None and assignment_result[0] == flight_id:
+                    db.session.commit()
+                    flash(f'Pilot {person_id} assigned to flight {flight_id} successfully.', 'success')
+                else:
+                    db.session.rollback()
+                    current_assignment = assignment_result[0] if assignment_result else "pilot not found or assignment failed"
+                    flash(f'Operation failed assigning pilot {person_id} to flight {flight_id}. Pilot assignment is currently "{current_assignment}". Check license, location, or existing assignment.', 'danger')
+
+            except exc.SQLAlchemyError as e:
+                db.session.rollback()
+                print(f"Database Error during CALL assign_pilot or checks: {e}")
+                print(traceback.format_exc())
+                flash(f'Database error during assignment. Error: {e}', 'danger')
+            except Exception as e:
+                 db.session.rollback()
+                 print(f"Unexpected Error assign_pilot: {e}")
+                 print(traceback.format_exc())
+                 flash(f'An unexpected error occurred: {e}', 'danger')
+
+        return redirect(url_for('procedures.assign_pilot'))
+
+    # --- Handle GET Request ---
+    return render_template('assign_pilot.html')
+
+
+
+@procedures_bp.route('/recycle_crew', methods=['GET', 'POST'])
+def recycle_crew():
+    if request.method == 'POST':
+        flight_id = request.form.get('flightID')
+        params = {}
+        validation_error = False
+
+        if not flight_id:
+            flash('Missing required field (Flight ID).', 'danger')
+            validation_error = True
+
+        if not validation_error:
+            params['ip_flightID'] = flight_id
+
+            pre_check_sql = text("""
+                SELECT
+                    f.airplane_status, f.progress,
+                    (SELECT MAX(sequence) FROM route_path WHERE routeID = f.routeID) AS total_legs
+                FROM flight f
+                WHERE f.flightID = :f_id
+            """)
+            try:
+                flight_info = db.session.execute(pre_check_sql, {"f_id": flight_id}).fetchone()
+
+                if flight_info is None:
+                    flash(f'Operation failed: Flight {flight_id} not found.', 'danger')
+                    return redirect(url_for('procedures.recycle_crew'))
+
+                status, progress, total_legs = flight_info
+
+                if status != 'on_ground':
+                    flash(f'Operation failed for flight {flight_id}. Flight must be "on_ground".', 'danger')
+                    return redirect(url_for('procedures.recycle_crew'))
+                if total_legs is None or progress is None or progress < total_legs:
+                    flash(f'Operation failed for flight {flight_id}. Flight has not completed its route (progress {progress} / {total_legs}).', 'danger')
+                    return redirect(url_for('procedures.recycle_crew'))
+            
+
+                sql = text("CALL recycle_crew(:ip_flightID)")
+                db.session.execute(sql, params)
+
+                db.session.commit() 
+                flash(f'Crew recycle attempt processed for flight {flight_id}. Check pilot status.', 'success')
+
+            except exc.SQLAlchemyError as e:
+                db.session.rollback()
+                print(f"Database Error during CALL recycle_crew or pre-checks: {e}")
+                print(traceback.format_exc())
+                # Clarify potential passenger issue if SP fails here
+                flash(f'Operation failed for flight {flight_id}. Pre-checks passed, but SP failed (is flight empty of passengers?). Error: {e}', 'danger')
+            except Exception as e:
+                 db.session.rollback()
+                 print(f"Unexpected Error recycle_crew: {e}")
+                 print(traceback.format_exc())
+                 flash(f'An unexpected error occurred: {e}', 'danger')
+
+        return redirect(url_for('procedures.recycle_crew'))
+
+    return render_template('recycle_crew.html')
+
+
+@procedures_bp.route('/retire_flight', methods=['GET', 'POST'])
+def retire_flight():
+    if request.method == 'POST':
+        flight_id = request.form.get('flightID'); params = {}; validation_error = False
+        if not flight_id: flash('Missing required field (Flight ID).', 'danger'); validation_error = True
+        if not validation_error:
+            params['ip_flightID'] = flight_id
+            try:
+                pre_check_sql = text("SELECT 1 FROM flight WHERE flightID = :f_id")
+                flight_exists = db.session.execute(pre_check_sql, {"f_id": flight_id}).fetchone()
+                if flight_exists is None: flash(f'Operation failed: Flight {flight_id} not found.', 'danger'); return redirect(url_for('procedures.retire_flight'))
+                sql = text("CALL retire_flight(:ip_flightID)"); db.session.execute(sql, params)
+                post_check_sql = text("SELECT 1 FROM flight WHERE flightID = :f_id LIMIT 1")
+                flight_deleted = db.session.execute(post_check_sql, {"f_id": flight_id}).fetchone()
+                if flight_deleted is None: db.session.commit(); flash(f'Flight {flight_id} retired successfully.', 'success')
+                else: db.session.rollback(); flash(f'Operation failed: Flight {flight_id} not retired. Is it on ground, ended, and empty?', 'danger')
+            except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error retire_flight: {e}"); print(traceback.format_exc()); flash(f'DB error retiring {flight_id}: {e}', 'danger')
+            except Exception as e: db.session.rollback(); print(f"Unexpected Error retire_flight: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
+        return redirect(url_for('procedures.retire_flight'))
+    return render_template('retire_flight.html')
+
+
+@procedures_bp.route('/simulation_cycle', methods=['POST'])
+def simulation_cycle():
+    try:
+        sql = text("CALL simulation_cycle()"); db.session.execute(sql)
+        db.session.commit(); flash('Simulation cycle executed.', 'success')
+    except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error simulation_cycle: {e}"); print(traceback.format_exc()); flash(f'Simulation cycle failed. Error: {e}', 'danger')
+    except Exception as e: db.session.rollback(); print(f"Unexpected Error simulation_cycle: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
+    return redirect(url_for('home'))
 
