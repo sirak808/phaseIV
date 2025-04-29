@@ -1,13 +1,10 @@
-<<<<<<< HEAD
-=======
-{# filename: templates/passengers_disembark.html - NEW FILE #}
->>>>>>> c745a6820ceede69bccdab16bdd95a04335c8cf6
+{# filename: templates/passengers_board.html - NEW FILE #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Process Passengers Disembark</title>
+    <title>Process Passengers Board</title>
      <style>
         body { font-family: sans-serif; padding: 20px; font-size: 16px; line-height: 1.6;}
         .container { max-width: 500px; margin: auto; background: #f4f4f4; padding: 20px; border-radius: 5px;}
@@ -46,8 +43,8 @@
 </head>
 <body>
      <div class="container">
-        <h1>Process Passengers Disembark</h1>
-        <small>Enter the ID of a flight that is currently 'on_ground'. This will change the location of any passenger (who is not also taking the next leg) to the airport the plane is currently at.</small>
+        <h1>Process Passengers Board</h1>
+        <small>Enter the ID of a flight that is currently 'on_ground' and has legs remaining. This will change the location of any passenger (whose next destination matches and who can pay for it) to the plane flying this flight's next leg.</small>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -57,13 +54,13 @@
           {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('procedures.passengers_disembark') }}">
+        <form method="POST" action="{{ url_for('procedures.passengers_board') }}">
              <div class="form-group">
                 <label for="flightID">Flight ID: *</label>
                 <input type="text" id="flightID" name="flightID" required maxlength="50">
             </div>
 
-            <button type="submit">Process Disembarking</button>
+            <button type="submit">Process Boarding</button>
             <a href="{{ url_for('home') }}" class="button-link cancel">Cancel</a>
         </form>
     </div>

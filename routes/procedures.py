@@ -249,6 +249,7 @@ def passengers_disembark():
             except Exception as e: db.session.rollback(); print(f"Unexpected Error passengers_disembark: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
         return redirect(url_for('procedures.passengers_disembark'))
     return render_template('passengers_disembark.html')
+<<<<<<< HEAD
 
 
 @procedures_bp.route('/assign_pilot', methods=['GET', 'POST'])
@@ -408,3 +409,5 @@ def simulation_cycle():
     except Exception as e: db.session.rollback(); print(f"Unexpected Error simulation_cycle: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
     return redirect(url_for('home'))
 
+=======
+>>>>>>> c745a6820ceede69bccdab16bdd95a04335c8cf6
