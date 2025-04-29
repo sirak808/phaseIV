@@ -301,3 +301,40 @@ def flight_takeoff():
         return redirect(url_for('procedures.flight_takeoff'))
     return render_template('flight_takeoff.html')
 
+@procedures_bp.route('/passengers_board', methods=['GET', 'POST'])
+def passengers_board():
+    if request.method == 'POST':
+        flight_id = request.form.get('flightID'); params = {}; validation_error = False
+        if not flight_id: flash('Missing required field (Flight ID).', 'danger'); validation_error = True
+        if not validation_error:
+            params['ip_flightID'] = flight_id
+            try:
+                sql = text("CALL passengers_board(:ip_flightID)"); db.session.execute(sql, params)
+                status_check_sql = text("SELECT airplane_status, progress, next_time FROM flight WHERE flightID = :f_id"); post_result = db.session.execute(status_check_sql, {"f_id": flight_id}).fetchone()
+                if post_result is None: db.session.rollback(); flash(f'Operation failed: Flight {flight_id} not found.', 'danger')
+                elif post_result[0] == 'in_flight': db.session.commit(); flash(f'Flight {flight_id} still in flight, cannot board at this time.', 'failure')
+                #elif post_result[0] == 'on_ground': db.session.commit(); flash(f'Flight {flight_id} takeoff processed, but flight remains "on_ground". Check pilot count or route status.', 'warning')
+                #lse: db.session.rollback(); flash(f'Operation failed for flight {flight_id}: Unexpected status "{post_result[0]}" after takeoff attempt.', 'danger')
+            except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error passengers_board: {e}"); print(traceback.format_exc()); flash(f'DB error for {flight_id}: {e}', 'danger')
+            except Exception as e: db.session.rollback(); print(f"Unexpected Error passengers_board: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
+        return redirect(url_for('procedures.passengers_board'))
+    return render_template('passengers_board.html')
+
+@procedures_bp.route('/passengers_disembark', methods=['GET', 'POST'])
+def passengers_disembark():
+    if request.method == 'POST':
+        flight_id = request.form.get('flightID'); params = {}; validation_error = False
+        if not flight_id: flash('Missing required field (Flight ID).', 'danger'); validation_error = True
+        if not validation_error:
+            params['ip_flightID'] = flight_id
+            try:
+                sql = text("CALL passengers_disembark(:ip_flightID)"); db.session.execute(sql, params)
+                status_check_sql = text("SELECT airplane_status, progress, next_time FROM flight WHERE flightID = :f_id"); post_result = db.session.execute(status_check_sql, {"f_id": flight_id}).fetchone()
+                if post_result is None: db.session.rollback(); flash(f'Operation failed: Flight {flight_id} not found.', 'danger')
+                elif post_result[0] == 'in_flight': db.session.commit(); flash(f'Flight {flight_id} still in flight, cannot disembark at this time.', 'failure')
+                #elif post_result[0] == 'on_ground': db.session.commit(); flash(f'Flight {flight_id} takeoff processed, but flight remains "on_ground". Check pilot count or route status.', 'warning')
+                #lse: db.session.rollback(); flash(f'Operation failed for flight {flight_id}: Unexpected status "{post_result[0]}" after takeoff attempt.', 'danger')
+            except exc.SQLAlchemyError as e: db.session.rollback(); print(f"DB Error passengers_disembark: {e}"); print(traceback.format_exc()); flash(f'DB error for {flight_id}: {e}', 'danger')
+            except Exception as e: db.session.rollback(); print(f"Unexpected Error passengers_disembark: {e}"); print(traceback.format_exc()); flash(f'App error: {e}', 'danger')
+        return redirect(url_for('procedures.passengers_disembark'))
+    return render_template('passengers_disembark.html')
